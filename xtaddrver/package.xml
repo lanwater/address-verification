@@ -1,0 +1,34 @@
+<package id        = "xtaddrver"
+         name      = "xtaddrver"
+         developer = "xTuple"
+         descrip   = "xTuple address verification extension"
+         version   = "0.0.1"
+         updater   = "2.4.0">
+  <pkgnotes> This package installs or updates the xTuple ERP address verification extension.</pkgnotes>
+
+  <prerequisite type="license">
+    <message>
+      This file is part of the xTuple Address Verification package for xTuple ERP, and is Copyright (c) 1999-2017 by OpenMFG LLC, d/b/a xTuple.  It is licensed to you under the xTuple End-User License Agreement ("the EULA"), the full text of which is available at www.xtuple.com/EULA.  While the EULA gives you access to source code and encourages your involvement in the development process, this Package is not free software.  By using this software, you agree to be bound by the terms of the EULA.
+    </message>
+  </prerequisite>
+
+  <prerequisite type="Query" name="Checking for db version">
+    <query>SELECT compareVersion(fetchMetricText('ServerVersion'), '4.11.0-beta') >= 0;
+    </query>
+    <message>This version of Address Verification extension requires xTuple ERP 4.11.0-beta or later.</message>
+  </prerequisite>
+
+  <loadappscript  file="foundation-database/xtaddrver/tables/pkgscript/AddressCluster.js"    name="AddressCluster" />
+  <loadappscript  file="foundation-database/xtaddrver/tables/pkgscript/AddressValidator.js"  name="AddressValidator" />
+  <loadappscript  file="foundation-database/xtaddrver/tables/pkgscript/addressvalidator_usps.js" name="addressvalidator_usps" />
+  <loadappscript  file="foundation-database/xtaddrver/tables/pkgscript/configureAV.js"       name="configureAV" />
+  <loadappscript  file="foundation-database/xtaddrver/tables/pkgscript/setup.js"             name="setup" />
+  <loadappscript  file="foundation-database/xtaddrver/tables/pkgscript/xtaddrver-utils.js"   name="xtaddrver-utils" />
+
+  <loadappui      file="foundation-database/xtaddrver/tables/pkguiform/configureAV.ui" />
+
+  <loadpriv name="MaintainAddressValidationSetup" module="AddressValidation">User can configure Address Validation</loadpriv>
+  <loadpriv name="ViewAddressValidationSetup"     module="AddressValidation">User can view the Address Validation configuration</loadpriv>
+
+</package>
+
