@@ -1,23 +1,22 @@
 # address-verification
 
-The xTuple ERP Address Validation package is a commercial extension
+The xTuple ERP Address Validation package is an extension
 to xTuple ERP that allows dynamic checking and updating of addresses,
 typically using web services APIs.
 
-## To install the extension
+## Installation
 
-You need access to commercial downloads on either github or xtuple.org.
+This extension has not yet been formally released (Oct 2018). There is a
+pre-release package build in the `packages` directory. If you want the latest
+code, you can [build the Updater package yourself](#building).
 
-1. Download the latest release of the `xtaddrver-`**VER**`.gz` file from
-   [github](https://github.com/xtuple/address-verification/releases)
-   or xTuple's [commercial-downloads](https://xtuple.org/webfm)
-2. Launch xTuple's [Updater](https://github.com/xtuple/updater/releases) application
-3. **File > Open** and select the `xtaddrver-`**VER**`.gz` you just downloaded
-4. Click **Update**
+After the extension has been released you will be able to download the Updater package
+from [GitHub](https://github.com/xtuple/address-verification/releases), SourceForge.
+or xTuple's [commercial-downloads](https://xtuple.org/webfm)
 
-## To build the extension
+## Building
 
-This is only necessary if you are a developer about to release a
+This is typically necessary if you are a developer about to release a
 new version of the address-verification extension:
 
 ```
