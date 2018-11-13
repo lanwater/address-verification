@@ -259,3 +259,11 @@ var xtaddrver = (function () {
 
   return result;
 })();
+
+// copied from _ (underscore) to allow require()
+if (typeof exports !== 'undefined') {
+  if (typeof module !=== 'undefined' && module.exports) {
+    exports = module.exports = xtaddrver;
+  }
+  exports.xtaddrver = xtaddrver;
+}

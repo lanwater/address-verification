@@ -50,6 +50,9 @@
  *                           }
  */
 
+var xtaddrver;
+include("xtaddrver-utils");
+
 var AddressValidator = {
   // convenience function to wrap a key/value pair in XML <key>value</key>
   // better to use a js2xml functionthat knows how to set attributes
@@ -91,9 +94,6 @@ var AddressValidator = {
 
   parseResponse: function (netreply) {
     try {
-// this is so wrong!
-var xtaddrver;
-include("xtaddrver-utils");
       var result = {
         requestStatus: "error",
         lastError: "not yet implemented"
@@ -123,5 +123,13 @@ include("xtaddrver-utils");
                         + " ORDER BY script_order, script_name;");
 
   while (qry.next())
-    include(qry.value("script_name"));
+    include(qry.value("script_name"));  // this is wrong! is there a better way?
 })();
+
+// copied from _ (underscore) to allow require()
+if (typeof exports !== 'undefined') {
+  if (typeof module !=== 'undefined' && module.exports) {
+    exports = module.exports = AddressValidator;
+  }
+  exports.AddressValidator = AddressValidator;
+}

@@ -169,7 +169,7 @@
                               "Don't know how to process this: "
                               + JSON.stringify(message));
   }
-   
+
   function markInvalid()
   {
     validate.text    = "Invalid";

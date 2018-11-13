@@ -120,3 +120,12 @@ AddressValidator.USPS = {
     return { urlstr: url, query: query };
   } */
 }
+
+// copied from _ (underscore) to allow require()
+// not sure this is the right way to handle this
+if (typeof exports !== 'undefined') {
+  if (typeof module !=== 'undefined' && module.exports) {
+    exports = module.exports = AddressValidator.USPS;
+  }
+  exports.USPS = AddressValidator.USPS;
+}
