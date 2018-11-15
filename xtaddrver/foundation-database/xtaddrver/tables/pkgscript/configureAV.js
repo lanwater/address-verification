@@ -25,19 +25,26 @@ include('AddressValidator');
 
   function sSave()
   {
-    for (valname in AddressValidator)
-    {
-      if (AddressValidator[valname].setup)
+    try {
+      var qry, abbr = [], i;
+      for (valname in AddressValidator)
       {
-        AddressValidator[valname].setup.forEach(function (e) {
-          if (e.encrypted)
-            metricsenc.set(e.metric, e._field.text);
-          else if (e._field)
-            metrics.set(e.metric, e._field.text);
-        });
+        if (AddressValidator[valname].setup)
+        {
+          AddressValidator[valname].setup.forEach(function (e) {
+            if (e.encrypted)
+              metricsenc.set(e.metric, e._field.text);
+            else if (e._field)
+              metrics.set(e.metric, e._field.text);
+          });
+        }
       }
+      metrics.set("AddressValidatorToUse", _avSelector.code);
     }
-    metrics.set("AddressValidatorToUse", _avSelector.code);
+    catch (e) {
+      QMessageBox.critical(mywindow, qsTr("Error Saving"),
+                           qsTr("Error at line %1: %2").arg(e.lineNumber).arg(e.message));
+    }
   }
 
   for (valname in AddressValidator)
@@ -59,6 +66,7 @@ include('AddressValidator');
       }
 
       AddressValidator[valname].setup.forEach(function (e) {
+        var qry;
         if (e.metric)
         {
           e._label = new XLabel(mywindow, "_" + e.metric + "Lit");
@@ -77,14 +85,38 @@ include('AddressValidator');
             e._field.text = metrics.value(e.metric);
 
           layout.addRow(e._label, e._field);
-        } else if (e.text) {
+        }
+        else if (e.text)
+        {
           e._label = new XLabel(mywindow, "_" + e.metric + "Lit");
           e._label.text = e.label;
 
-          e._text = toolbox.createWidget("QTextEdit", mywindow, "_" + e._label);
-          e._text.readOnly = true;
-          e._text.plainText = e.text;
+          e._text = new QTextEdit(e.text, mywindow);
+          e._text.setObjectName("_" + e.metric);
+          e._text.readOnly   = true;
           layout.addRow(e._label, e._text);
+        }
+        else if (e.servicecountry)
+        {
+          e._label = new XLabel(mywindow, "_" + valname + "CountriesLit");
+          e._label.text = qsTr("Supported Countries");
+
+          e._countries  = new QTableWidget(mywindow);
+          e._countries.setObjectName("_" + valname + "Countries");
+          e._countries.columnCount        = 1;
+          e._countries.rowCount           = e.servicecountry.length;
+          e._countries.columnWidth        = -1;
+          e._countries.verticalHeader && e._countries.verticalHeader().hide();
+          if (e._countries.horizontalHeader)
+          {
+            e._countries.horizontalHeader().hide();
+            e._countries.horizontalHeader().stretchLastSection = true;
+          }
+          e.servicecountry.forEach(function (abbr, i) {
+            var item = new QTableWidgetItem(abbr, QTableWidgetItem.Type);
+            e._countries.setItem(i, 0, item);
+          });
+          layout.addRow(e._label, e._countries);
         }
       });
     }

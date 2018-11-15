@@ -260,7 +260,7 @@ var xtaddrver = (function () {
 
 // copied from _ (underscore) to allow require()
 if (typeof exports !== 'undefined') {
-  if (typeof module !=== 'undefined' && module.exports) {
+  if (typeof module !== 'undefined' && module.exports) {
     exports = module.exports = xtaddrver;
   }
   exports.xtaddrver = xtaddrver;

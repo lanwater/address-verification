@@ -9,7 +9,8 @@
 
 AddressValidator.USPS = {
   setup: [ { label: "User Id", metric: "USPSUserID" },
-           { label: "URL",     metric: "USPSURL", "default": "testurl", width: 250 }
+           { label: "URL",     metric: "USPSURL", "default": "testurl", width: 250 },
+           { label: "Countries", servicecountry: [ 'US' ] }
   ],
   liveurl: "http://production.shippingapis.com/ShippingAPI.dll",
   testurl: "http://production.shippingapis.com/ShippingAPITest.dll",
@@ -122,7 +123,7 @@ AddressValidator.USPS = {
 // copied from _ (underscore) to allow require()
 // not sure this is the right way to handle this
 if (typeof exports !== 'undefined') {
-  if (typeof module !=== 'undefined' && module.exports) {
+  if (typeof module !== 'undefined' && module.exports) {
     exports = module.exports = AddressValidator.USPS;
   }
   exports.USPS = AddressValidator.USPS;

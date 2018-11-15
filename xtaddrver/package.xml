@@ -13,9 +13,9 @@
   </prerequisite>
 
   <prerequisite type="Query" name="Checking for db version">
-    <query>SELECT compareVersion(fetchMetricText('ServerVersion'), '4.11.0-beta') >= 0;
+    <query>SELECT compareVersion(fetchMetricText('ServerVersion'), '4.12.0-alpha.2') >= 0;
     </query>
-    <message>This version of Address Verification extension requires xTuple ERP 4.11.0-beta or later.</message>
+    <message>This version of Address Verification extension requires xTuple ERP 4.12.0-alpha.2 or later.</message>
   </prerequisite>
 
   <loadappscript  file="foundation-database/xtaddrver/tables/pkgscript/AddressCluster.js"    name="AddressCluster" />
