@@ -10,8 +10,8 @@
 AddressValidator.USPS = {
   setup: [ { label: "User Id", metric: "USPSUserID" },
            { label: "URL",     metric: "USPSURL", "default": "testurl", width: 250 },
-           { label: "Countries", servicecountry: [ 'US' ] }
   ],
+  servicecountry: [ 'US' ],
   liveurl: "http://production.shippingapis.com/ShippingAPI.dll",
   testurl: "http://production.shippingapis.com/ShippingAPITest.dll",
   hint:    [ { key: "addr_line3", value: "Urbanization in PR" } ],
@@ -51,25 +51,26 @@ AddressValidator.USPS = {
     };
   },
   extractAddress: function (obj) {
+    DEBUG && print('USPS extractAddress(', obj, ') entered with', JSON.stringify(obj));
     var result = { requestStatus: "unknown" },
-        response = obj.AddressValidateResponse || obj;
+        response = ("AddressValidateResponse" in obj) ? obj.AddressValidateResponse : obj;
 
     if (response.Error)
     {
-      result.lastError = { text:   response.Error.Description,
-                           number: response.Error.Number };
+      result.lastError = { text:   response.Error.Description.toString(),
+                           number: response.Error.Number.toString() };
       result.requestStatus = "error";
     }
     else if (response.Address && response.Address.Error)
     {
-      result.lastError = { text:   response.Address.Error.Description,
-                           number: response.Address.Error.Number };
+      result.lastError = { text:   response.Address.Error.Description.toString(),
+                           number: response.Address.Error.Number.toString() };
       result.requestStatus = "error";
     }
     else if (response.Address)
     {
       if (response.Address.ReturnText) {
-        result.lastError     = { text: response.Address.ReturnText };
+        result.lastError     = { text: response.Address.ReturnText .toString() };
         result.requestStatus = "warning";
       } else
         result.requestStatus = "good";
@@ -86,6 +87,7 @@ AddressValidator.USPS = {
       if (response.Address.Urbanization)
         result.addr.addr_line3 = response.Address.Urbanization;
     }
+    DEBUG && print('USPS extractAddress() returning', JSON.stringify(result));
     return result;
   },
   /* needs debugging, a way to call, and an extract function

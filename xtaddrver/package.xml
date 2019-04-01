@@ -2,7 +2,7 @@
          name      = "xtaddrver"
          developer = "xTuple"
          descrip   = "xTuple address verification extension"
-         version   = "0.1.0"
+         version   = "0.2.0"
          updater   = "2.4.0">
   <pkgnotes> This package installs or updates the xTuple ERP address verification extension.</pkgnotes>
 
@@ -23,12 +23,12 @@
   <loadappscript  file="foundation-database/xtaddrver/tables/pkgscript/addressvalidator_usps.js" name="addressvalidator_usps" />
   <loadappscript  file="foundation-database/xtaddrver/tables/pkgscript/configureAV.js"       name="configureAV" />
   <loadappscript  file="foundation-database/xtaddrver/tables/pkgscript/setup.js"             name="setup" />
-  <loadappscript  file="foundation-database/xtaddrver/tables/pkgscript/xtaddrver-utils.js"   name="xtaddrver-utils" />
 
   <loadappui      file="foundation-database/xtaddrver/tables/pkguiform/configureAV.ui" />
 
   <loadpriv name="MaintainAddressValidationSetup" module="AddressValidation">User can configure Address Validation</loadpriv>
   <loadpriv name="ViewAddressValidationSetup"     module="AddressValidation">User can view the Address Validation configuration</loadpriv>
 
+  <finalscript file="foundation-database/xtaddrver/cleanup.sql" />
 </package>
 

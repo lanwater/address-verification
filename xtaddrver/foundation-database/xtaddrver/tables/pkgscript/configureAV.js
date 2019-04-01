@@ -12,6 +12,7 @@ include('AddressValidator');
 (function () {
 
   var layout, tab, tabname, valname;
+  var countriesLit, countries; // temporary variables to hold widgets
   var _setupwindow = mainwindow.findChild("setup"),
       _avSelector  = mywindow.findChild("_avSelector"),
       tabwidget    = mywindow.findChild("_avTabWidget"),
@@ -96,29 +97,33 @@ include('AddressValidator');
           e._text.readOnly   = true;
           layout.addRow(e._label, e._text);
         }
-        else if (e.servicecountry)
-        {
-          e._label = new XLabel(mywindow, "_" + valname + "CountriesLit");
-          e._label.text = qsTr("Supported Countries");
-
-          e._countries  = new QTableWidget(mywindow);
-          e._countries.setObjectName("_" + valname + "Countries");
-          e._countries.columnCount        = 1;
-          e._countries.rowCount           = e.servicecountry.length;
-          e._countries.columnWidth        = -1;
-          e._countries.verticalHeader && e._countries.verticalHeader().hide();
-          if (e._countries.horizontalHeader)
-          {
-            e._countries.horizontalHeader().hide();
-            e._countries.horizontalHeader().stretchLastSection = true;
-          }
-          e.servicecountry.forEach(function (abbr, i) {
-            var item = new QTableWidgetItem(abbr, QTableWidgetItem.Type);
-            e._countries.setItem(i, 0, item);
-          });
-          layout.addRow(e._label, e._countries);
-        }
       });
+      if (AddressValidator[valname].servicecountry)
+      {
+        countriesLit = new XLabel(mywindow, "_" + valname + "CountriesLit");
+        countriesLit.text = qsTr("Supported Countries");
+
+        countries  = new QTableWidget(mywindow);
+        countries.setObjectName("_" + valname + "Countries");
+        countries.columnCount        = 1;
+        countries.rowCount           = AddressValidator[valname].servicecountry.length;
+        countries.columnWidth        = -1;
+        countries.verticalHeader && countries.verticalHeader().hide();
+        if (countries.horizontalHeader)
+        {
+          countries.horizontalHeader().hide();
+          countries.horizontalHeader().stretchLastSection = true;
+        }
+        else if (countries.setColumnWidth)
+          countries.setColumnWidth(0, -1);
+
+        AddressValidator[valname].servicecountry.forEach(function (abbr, i) {
+          var item = new QTableWidgetItem(abbr, QTableWidgetItem.Type);
+          countries.setItem(i, 0, item);
+        });
+
+        layout.addRow(countriesLit, countries);
+      }
     }
   }
 
