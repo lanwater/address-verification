@@ -83,9 +83,9 @@
         markInvalid();
         QMessageBox.critical(mywidget, qsTr("Address Validation Error"),
                              qsTr("%1 reported an error [%2]:<br/>%3")
-                                 .arg(valname)
-                                 .arg(response.lastError.number)
-                                 .arg(response.lastError.text));
+                                 .arg(valname                   || " ")
+                                 .arg(response.lastError.number || "no #")
+                                 .arg(response.lastError.text   || " "));
 
       }
       else if (response.requestStatus === 'warning')
@@ -93,9 +93,9 @@
         markDirty();
         QMessageBox.critical(mywidget, qsTr("Address Validation Warning"),
                              qsTr("%1 reported a warning [%2]:<br/>%3")
-                                 .arg(valname)
-                                 .arg(response.lastError.number)
-                                 .arg(response.lastError.text));
+                                 .arg(valname                   || " ")
+                                 .arg(response.lastError.number || "no #")
+                                 .arg(response.lastError.text   || " "));
         if (response.addr) {
           mywidget.setLine1(response.addr.addr_line1);
           mywidget.setLine2(response.addr.addr_line2);
@@ -118,6 +118,38 @@
         mywidget.setCity(response.addr.addr_city);
         mywidget.setState(response.addr.addr_state);
         mywidget.setPostalCode(response.addr.addr_postalcode);
+
+        var qry = new QSqlQuery();
+        qry.prepare("INSERT INTO addrchecked (addrchecked_addr_id, addrchecked_service,"
+                  + "  addrchecked_hash"
+                  + ") VALUES (:id, :service,"
+                  + "       digest((:line1::TEXT, :line2::TEXT, :line3::TEXT,"
+                  + "               :city::TEXT, :state::TEXT, :postalcode::TEXT,"
+                  + "               :country::TEXT)::TEXT, 'sha512')"
+                  + ")"
+                  + "  ON CONFLICT (addrchecked_addr_id)"
+                  + "  DO UPDATE SET addrchecked_service = :service,"
+                  + "                addrchecked_hash = "
+                  + "                digest((:line1::TEXT, :line2::TEXT, :line3::TEXT,"
+                  + "                        :city::TEXT, :state::TEXT, :postalcode::TEXT,"
+                  + "                        :country::TEXT)::TEXT, 'sha512')"
+                  + "      WHERE EXCLUDED.addrchecked_addr_id = :id"
+                  + " RETURNING *;");
+        qry.bindValue(":id",         mywidget.id());
+        qry.bindValue(":service",    valname);
+        qry.bindValue(":line1",      mywidget.line1());
+        qry.bindValue(":line2",      mywidget.line2());
+        qry.bindValue(":line3",      mywidget.line3());
+        qry.bindValue(":city",       mywidget.city());
+        qry.bindValue(":state",      mywidget.state());
+        qry.bindValue(":postalcode", mywidget.postalCode());
+        qry.bindValue(":country",    mywidget.country());
+        qry.exec();
+        if (qry.first() && DEBUG)
+          print(qry.value("addrchecked_addr_id"), qry.value("addrchecked_hash"));
+        else if (qry.lastError().type() != QSqlError.NoError)
+          // non-fatal
+          print("Could not record that this address passed validation:", qry.lastError().text());
       }
       else
         throw new Error(JSON.stringify(response));
@@ -125,6 +157,37 @@
       QMessageBox.critical(mywidget, qsTr("AddressCluster Script Failure"),
                            qsTr("AddressCluster.sGetResponse Error @ %1: %2")
                                .arg(e.lineNumber).arg(e.message));
+    }
+  }
+
+  function sHandleNewId()
+  {
+    var qry = new QSqlQuery();
+    qry.prepare("SELECT addrchecked_hash = "
+              + "       digest((:line1::TEXT, :line2::TEXT, :line3::TEXT,"
+              + "               :city::TEXT, :state::TEXT, :postalcode::TEXT,"
+              + "               :country::TEXT)::TEXT, 'sha512')"
+              + "       AS matches"
+              + "  FROM addrchecked"
+              + "  WHERE addrchecked_addr_id = :id;");
+    qry.bindValue(":id",         mywidget.id());
+    qry.bindValue(":service",    valname);
+    qry.bindValue(":line1",      mywidget.line1());
+    qry.bindValue(":line2",      mywidget.line2());
+    qry.bindValue(":line3",      mywidget.line3());
+    qry.bindValue(":city",       mywidget.city());
+    qry.bindValue(":state",      mywidget.state());
+    qry.bindValue(":postalcode", mywidget.postalCode());
+    qry.bindValue(":country",    mywidget.country() || metrics.value("DefaultAddressCountry"));
+    if (qry.exec() && qry.first() && qry.value("matches"))
+      markValid();
+    else
+    {
+      markDirty();
+      if (qry.lastError().type() != QSqlError.NoError)
+        // non-fatal
+        print("Could not check whether this address previously passed validation:",
+              qry.lastError().text());
     }
   }
 
@@ -137,6 +200,9 @@
     if (AddressValidator[valname].servicecountry.indexOf(_country.code) >= 0)
       result = true;
     else if (AddressValidator[valname].servicecountry.indexOf(_country.text) >= 0)
+      result = true;
+    else if (_country.id() == -1 &&
+             AddressValidator[valname].servicecountry.indexOf(metrics.value("DefaultAddressCountry") >= 0))
       result = true;
     else
     {
@@ -231,9 +297,10 @@
   _state["valid(bool)"].connect(markDirty);
   _postalcode.textEdited.connect(markDirty);
   _country["newID(int)"].connect(markDirty);
+  mywidget["newId(int)"].connect(sHandleNewId);
 
   validate.clicked.connect(sValidate);
   netmgr.finished.connect(sGetResponse);
 
-  markDirty();
+  sHandleNewId();
 })();

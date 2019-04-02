@@ -29,6 +29,10 @@
   <loadpriv name="MaintainAddressValidationSetup" module="AddressValidation">User can configure Address Validation</loadpriv>
   <loadpriv name="ViewAddressValidationSetup"     module="AddressValidation">User can view the Address Validation configuration</loadpriv>
 
+  <createtable   file="foundation-database/xtaddrver/tables/addrchecked.sql"   name="addrchecked" />
+  <createtrigger file="foundation-database/xtaddrver/triggers/addrchecked.sql" name="addrcheckedbeforeupserttrigger" />
+
+  <finalscript file="foundation-database/xtaddrver/indexes/addrchecked.sql" />
   <finalscript file="foundation-database/xtaddrver/cleanup.sql" />
 </package>
 
