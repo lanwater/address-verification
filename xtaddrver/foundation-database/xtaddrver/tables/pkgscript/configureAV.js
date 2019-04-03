@@ -10,7 +10,7 @@
 include('AddressValidator');
 
 (function () {
-
+  const DEBUG = false;
   var layout, tab, tabname, valname;
   var countriesLit, countries; // temporary variables to hold widgets
   var _setupwindow = mainwindow.findChild("setup"),
@@ -33,10 +33,13 @@ include('AddressValidator');
         if (AddressValidator[valname].setup)
         {
           AddressValidator[valname].setup.forEach(function (e) {
+            DEBUG && print("saving", valname, JSON.stringify(e));
             if (e.encrypted)
               metricsenc.set(e.metric, e._field.text);
             else if (e._field)
               metrics.set(e.metric, e._field.text);
+            else if (e._checkbox)
+              metrics.set(e.metric, e._checkbox.checked ? "t" : "f");
           });
         }
       }
@@ -68,7 +71,19 @@ include('AddressValidator');
 
       AddressValidator[valname].setup.forEach(function (e) {
         var qry;
-        if (e.metric)
+        if (e.checkbox)
+        {
+          e._checkbox = new XCheckBox(e.checkbox, mywindow);
+          e._checkbox.setObjectName("_" + e.metric + "CB");
+          e._checkbox.forgetful = true;
+          e._checkbox.text = e.checkbox;
+          if (metrics.value(e.metric))
+            e._checkbox.checked = metrics.boolean(e.metric);
+          else if ("default" in e)
+            e._checkbox.checked = (e["default"] === true || e["default"] === "t"); // guard against bad coding
+          layout.addRow("", e._checkbox);
+        }
+        else if (e.metric)
         {
           e._label = new XLabel(mywindow, "_" + e.metric + "Lit");
           e._label.text = e.label;

@@ -15,19 +15,38 @@
    That script should add a property to the AddressValidator global
    (e.g. AddressValidator.USPS = {...}) with the following properties:
    - setup: an array of objects describing how to configure this validator
-     + label:     text to display on setup window
-     + metric:    the metric[enc]_name used to hold this configuration field
-     + encrypted: true => store in metricenc, otherwise store in metric
-     + default:   name of validator property storing the value or
-                  a text string giving the default value of this metric
-                  (e.g. If the validator has a property named "liveurl" and
-                   setup contains "default": "liveurl", that property will
-                   use the value in validator.liveurl if the metric is empty.
-                   If the setup contains "default": "http://service.provider.com"
-                   and the metric isn't set, then "http://service.provider.com"
-                   will be used.
-     + width:     A HACK holding the minimumSize() of the xlineedit
-     + text:      static text to display, such as license agreement
+     + label:     Field label text to display on setup window
+     + checkbox:  Text for checkbox
+     + metric:    The metric[enc]_name used to hold the value of this configuration field
+     + encrypted: true => store in metricenc, otherwise store in metric.
+                  Note this requires access to the encryption key.
+     + default:   Either the name of a validator property storing the value,
+                  a text string giving the default value of this metric ("label" case),
+                  or a boolean value ("checkbox" case).
+                  For example:
+                  {
+                    setup: [ { label: "URL",  metric: "MyLiveURL",    "default": "liveurl" },
+                             { label: "Seed", metric: "MyRandomSeed", "default": "Random text" },
+                             { label: "Key",  metric: "MyAPIKey" }
+                           ],
+                    liveurl: "https://example.com/api"
+                  }
+		  The setup pane will show at least 3 labeled fields, one for each member of
+		  the `setup` array. The value for each named metric will appear in the
+		  corresponding field.  If the value of the MyLiveURL metric is an empty
+		  string, the setup pane for the validator will show `https://example.com/api`
+		  as placeholder text in the URL field.  If the value of the MyOption metric is
+		  an empty string, the setup pane will show `Random Text` as the Seed's
+		  placeholder text. If the MyAPIKey metric is empty, the Key field will have no
+		  placeholder.
+
+                  Guideline: Use a property (`liveurl` approach) if the validator needs a
+                  value at runtime and there is a reasonable hard-coded default. Use the 
+                  other approach to provide hints about what to enter or indicate how the`
+                  validator will behave if no value is supplied.
+
+     + width:     The minimumSize() of the xlineedit
+     + text:      Static text to display, such as license agreement
    - servicecountry: An array of abbreviations for the countries this
                      validator serves (must match the country table)
    - buildAddress:   a function
