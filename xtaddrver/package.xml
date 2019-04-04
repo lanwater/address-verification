@@ -26,8 +26,8 @@
 
   <loadappui      file="foundation-database/xtaddrver/tables/pkguiform/configureAV.ui" />
 
-  <loadpriv name="MaintainAddressValidationSetup" module="AddressValidation">User can configure Address Validation</loadpriv>
-  <loadpriv name="ViewAddressValidationSetup"     module="AddressValidation">User can view the Address Validation configuration</loadpriv>
+  <loadpriv name="MaintainAddressValidationSetup" module="CRM">User can configure Address Validation</loadpriv>
+  <loadpriv name="ViewAddressValidationSetup"     module="CRM">User can view the Address Validation configuration</loadpriv>
 
   <createtable   file="foundation-database/xtaddrver/tables/addrchecked.sql"   name="addrchecked" />
   <createtrigger file="foundation-database/xtaddrver/triggers/addrchecked.sql" name="addrcheckedbeforeupserttrigger" />

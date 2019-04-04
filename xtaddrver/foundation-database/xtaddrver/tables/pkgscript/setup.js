@@ -9,6 +9,5 @@
 
 (function () {
   var mode = mywindow.mode("MaintainAddressValidationSetup", "ViewAddressValidationSetup");
-  mywindow.insert(qsTr("Address Validation"), "configureAV", setup.Configure, Xt.SystemModule, mode, mode);
-
+  mywindow.insert(qsTr("Address Validation"), "configureAV", setup.Configure, Xt.CRMModule, mode, mode);
 })();

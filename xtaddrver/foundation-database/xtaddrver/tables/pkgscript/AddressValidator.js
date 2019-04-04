@@ -43,7 +43,9 @@
                   Guideline: Use a property (`liveurl` approach) if the validator needs a
                   value at runtime and there is a reasonable hard-coded default. Use the 
                   other approach to provide hints about what to enter or indicate how the`
-                  validator will behave if no value is supplied.
+                  validator will behave if no value is supplied. Note that the "default"
+                  property must be set to a String value, whether it's the name of another property
+                  or something else.
 
      + width:     The minimumSize() of the xlineedit
      + text:      Static text to display, such as license agreement

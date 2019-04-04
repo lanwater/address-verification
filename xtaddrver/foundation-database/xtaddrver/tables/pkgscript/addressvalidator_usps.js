@@ -35,7 +35,8 @@ AddressValidator.USPS = {
       case 'line2': metricname = "USPSLine2"; break;
       case 'line3': metricname = "USPSLine3"; break;
     }
-    if (metrics.boolean("USPSHints") && metricname)
+    DEBUG && print("getHint():", metrics.boolean(this.showhints), metricname);
+    if (metrics.boolean(this.showhints) && metricname)
     {
       hint = this.fields.filter(function (e) { return e.code == metrics.value(metricname); });
       if (Array.isArray(hint))

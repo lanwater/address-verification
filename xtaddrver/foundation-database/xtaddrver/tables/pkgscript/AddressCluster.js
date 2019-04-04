@@ -31,8 +31,6 @@
 
   var netmgr     = new QNetworkAccessManager(mywidget);
 
-  DEBUG && print(AddressValidator[valname].showhints, metrics.boolean(AddressValidator[valname].showhints))
-
   DEBUG && print("about to set placeholders");
   _addr1.placeholderText = AddressValidator[valname].getHint('line1');
   _addr2.placeholderText = AddressValidator[valname].getHint('line2');
