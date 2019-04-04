@@ -40,6 +40,8 @@ include('AddressValidator');
               metrics.set(e.metric, e._field.text);
             else if (e._checkbox)
               metrics.set(e.metric, e._checkbox.checked ? "t" : "f");
+            else if (e._combobox)
+              metrics.set(e.metric, e._combobox.code);
           });
         }
       }
@@ -69,7 +71,7 @@ include('AddressValidator');
         tab.setLayout(layout);
       }
 
-      AddressValidator[valname].setup.forEach(function (e) {
+      AddressValidator[valname].setup.forEach(function (e, idx) {
         var qry;
         if (e.checkbox)
         {
@@ -82,13 +84,36 @@ include('AddressValidator');
           else if ("default" in e)
             e._checkbox.checked = (e["default"] === true || e["default"] === "t"); // guard against bad coding
           layout.addRow("", e._checkbox);
+          DEBUG && print(e._checkbox);
         }
-        else if (e.metric)
+        else if (e.combobox)
+        {
+          e._label      = new XLabel(mywindow, "_" + e.metric + "Lit");
+          e._label.text = e.label;
+          e._combobox   = new XComboBox(mywindow, "_" + e.metric + "CB");
+          AddressValidator[valname][e.combobox].forEach(function (item, idx) {
+            e._combobox.append(idx, item.text, item.code);
+          });
+          e._combobox.code = metrics.value(e.metric);
+          layout.addRow(e._label, e._combobox);
+          DEBUG && print(e._label, e._combobox);
+        }
+        else if (e.text)
         {
           e._label = new XLabel(mywindow, "_" + e.metric + "Lit");
           e._label.text = e.label;
 
-          e._field = new XLineEdit(mywindow, "_" + e.metric);
+          e._text = new QTextEdit(e.text, mywindow);
+          e._text.setObjectName("_" + e.metric);
+          e._text.readOnly   = true;
+          layout.addRow(e._label, e._text);
+          DEBUG && print(e._label, e._text);
+        }
+        else if (e.metric)
+        {
+          e._label      = new XLabel(mywindow, "_" + e.metric + "Lit");
+          e._label.text = e.label;
+          e._field      = new XLineEdit(mywindow, "_" + e.metric);
           if ("width" in e) e._field.minimumWidth = e.width;
           if ("default" in e)
             e._field.placeholderText = AddressValidator[valname][e["default"]] ||
@@ -101,16 +126,14 @@ include('AddressValidator');
             e._field.text = metrics.value(e.metric);
 
           layout.addRow(e._label, e._field);
+          DEBUG && print(e._label, e._field);
         }
-        else if (e.text)
+        else if (e.message)
         {
-          e._label = new XLabel(mywindow, "_" + e.metric + "Lit");
-          e._label.text = e.label;
-
-          e._text = new QTextEdit(e.text, mywindow);
-          e._text.setObjectName("_" + e.metric);
-          e._text.readOnly   = true;
-          layout.addRow(e._label, e._text);
+          e._label = new XLabel(mywindow, "_" + valname + idx + "Message");
+          e._label.text = e.message;
+          layout.addRow(e._label);
+          DEBUG && print(e._label);
         }
       });
       if (AddressValidator[valname].servicecountry)

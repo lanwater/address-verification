@@ -11,7 +11,7 @@
   var AddressValidator; // declare first, overwrite by include()
   include("AddressValidator");
 
-  var DEBUG   = false;
+  const DEBUG = false;
   var valname = metrics.value("AddressValidatorToUse");
   if (valname.length == 0 || ! valname in AddressValidator)
     return;
@@ -31,20 +31,12 @@
 
   var netmgr     = new QNetworkAccessManager(mywidget);
 
-  if (Array.isArray(AddressValidator[valname].hint))
-    AddressValidator[valname].hint.forEach(function (e) {
-      var widget;
-      switch (e.key) {
-        case "addr_line1":      widget = _addr1;        break;
-        case "addr_line2":      widget = _addr2;        break;
-        case "addr_line3":      widget = _addr3;        break;
-        case "addr_city":       widget = _city;         break;
-        case "addr_state":      widget = _state;        break;
-        case "addr_postalcode": widget = _postalcode;   break;
-        case "addr_country":    widget = _country;      break;
-      };
-      if (widget && e.value) widget.placeholderText = e.value;
-    });
+  DEBUG && print(AddressValidator[valname].showhints, metrics.boolean(AddressValidator[valname].showhints))
+
+  DEBUG && print("about to set placeholders");
+  _addr1.placeholderText = AddressValidator[valname].getHint('line1');
+  _addr2.placeholderText = AddressValidator[valname].getHint('line2');
+  _addr3.placeholderText = AddressValidator[valname].getHint('line3');
 
   // scripted version of toolbox.widgetGetLayout(w)
   function widgetGetLayout(w)
@@ -97,10 +89,10 @@
                                  .arg(response.lastError.number || "no #")
                                  .arg(response.lastError.text   || " "));
         if (response.addr) {
-          mywidget.setLine1(response.addr.addr_line1);
-          mywidget.setLine2(response.addr.addr_line2);
-          if (typeof response.addr.addr_line3 == "string")
-            mywidget.setLine3(response.addr.addr_line3);
+          // these `in` checks allow the validator to skip fields
+          ("addr_line1" in response.addr) && mywidget.setLine1(response.addr.addr_line1);
+          ("addr_line2" in response.addr) && mywidget.setLine2(response.addr.addr_line2);
+          ("addr_line3" in response.addr) && mywidget.setLine3(response.addr.addr_line3);
 
           mywidget.setCity(response.addr.addr_city);
           mywidget.setState(response.addr.addr_state);
@@ -110,10 +102,10 @@
       else if (response.requestStatus === 'good')
       {
         markValid();
-        mywidget.setLine1(response.addr.addr_line1);
-        mywidget.setLine2(response.addr.addr_line2);
-        if (typeof response.addr.addr_line3 == "string")
-          mywidget.setLine3(response.addr.addr_line3);
+        // these `in` checks allow the validator to skip fields
+        ("addr_line1" in response.addr) && mywidget.setLine1(response.addr.addr_line1);
+        ("addr_line2" in response.addr) && mywidget.setLine2(response.addr.addr_line2);
+        ("addr_line3" in response.addr) && mywidget.setLine3(response.addr.addr_line3);
 
         mywidget.setCity(response.addr.addr_city);
         mywidget.setState(response.addr.addr_state);
@@ -154,6 +146,7 @@
       else
         throw new Error(JSON.stringify(response));
     } catch (e) {
+      markDirty();
       QMessageBox.critical(mywidget, qsTr("AddressCluster Script Failure"),
                            qsTr("AddressCluster.sGetResponse Error @ %1: %2")
                                .arg(e.lineNumber).arg(e.message));

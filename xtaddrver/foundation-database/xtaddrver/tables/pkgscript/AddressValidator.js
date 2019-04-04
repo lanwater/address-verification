@@ -49,7 +49,10 @@
      + text:      Static text to display, such as license agreement
    - servicecountry: An array of abbreviations for the countries this
                      validator serves (must match the country table)
-   - buildAddress:   a function
+   - getHint:        A function
+                     input: 'line1', 'line2', 'line3'
+                     output: Placeholder text for the corresponding line of the AddressCluster.
+   - buildAddress:   A function
                      input: an object describing the address
                      (resembles an addr record but only has properties
                      for the non-empty fields in the widget)
@@ -73,7 +76,9 @@ var AddressValidator = {
   /** Convenience function to convert an XML document to a JavaScript object */
   xml2js: function(input)
   {
+    const DEBUG = false;
     try {
+      DEBUG && print("xml2js() entered with", input);
       if ((input + "").indexOf("QDom") != 0 &&
           (input + "").indexOf("[QDom") != 0)
       {
@@ -147,6 +152,7 @@ var AddressValidator = {
       output.xmltag = xmltag;
       if (xmlattribute != null)
         output.xmlattribute = xmlattribute;
+      DEBUG && print(output);
       return output;
     }
     catch (e) {
@@ -369,7 +375,6 @@ var AddressValidator = {
 
   parseResponse: function (netreply)
   {
-    DEBUG && print('parseResponse(', netreply, ') entered with', JSON.stringify(netreply));
     var result = {
       requestStatus: "error",
       lastError:     "unknown"
@@ -377,6 +382,7 @@ var AddressValidator = {
     try {
       var replystr = ("readAll" in netreply)
                      ? netreply.readAll().toLatin1() + '' : JSON.stringify(netreply);
+      DEBUG && print('parseResponse as string', replystr);
 
       switch (replystr[0]) {
         case '{': result = JSON.parse(replystr);  break;
