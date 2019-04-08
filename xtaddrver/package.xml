@@ -2,20 +2,20 @@
          name      = "xtaddrver"
          developer = "xTuple"
          descrip   = "xTuple address verification extension"
-         version   = "0.0.1"
+         version   = "0.2.0"
          updater   = "2.4.0">
   <pkgnotes> This package installs or updates the xTuple ERP address verification extension.</pkgnotes>
 
   <prerequisite type="license">
     <message>
-      This file is part of the xTuple Address Verification package for xTuple ERP, and is Copyright (c) 1999-2018 by OpenMFG LLC, d/b/a xTuple.  It is licensed to you under the xTuple End-User License Agreement ("the CPAL"), the full text of which is available at www.xtuple.com/EULA.  While the EULA gives you access to source code and encourages your involvement in the development process, this Package is not free software.  By using this software, you agree to be bound by the terms of the EULA.
+      This file is part of the xTuple Address Verification package for xTuple ERP, and is Copyright (c) 1999-2018 by OpenMFG LLC, d/b/a xTuple.  It is licensed to you under the Common Public Attribution License version 1.0, the full text of which (including xTuple-specific Exhibits) is available at www.xtuple.com/CPAL.  By using this software, you agree to be bound by its terms.
     </message>
   </prerequisite>
 
   <prerequisite type="Query" name="Checking for db version">
-    <query>SELECT compareVersion(fetchMetricText('ServerVersion'), '4.11.0-beta') >= 0;
+    <query>SELECT compareVersion(fetchMetricText('ServerVersion'), '4.12.0-alpha.2') >= 0;
     </query>
-    <message>This version of Address Verification extension requires xTuple ERP 4.11.0-beta or later.</message>
+    <message>This version of Address Verification extension requires xTuple ERP 4.12.0-alpha.2 or later.</message>
   </prerequisite>
 
   <loadappscript  file="foundation-database/xtaddrver/tables/pkgscript/AddressCluster.js"    name="AddressCluster" />
@@ -23,12 +23,16 @@
   <loadappscript  file="foundation-database/xtaddrver/tables/pkgscript/addressvalidator_usps.js" name="addressvalidator_usps" />
   <loadappscript  file="foundation-database/xtaddrver/tables/pkgscript/configureAV.js"       name="configureAV" />
   <loadappscript  file="foundation-database/xtaddrver/tables/pkgscript/setup.js"             name="setup" />
-  <loadappscript  file="foundation-database/xtaddrver/tables/pkgscript/xtaddrver-utils.js"   name="xtaddrver-utils" />
 
   <loadappui      file="foundation-database/xtaddrver/tables/pkguiform/configureAV.ui" />
 
-  <loadpriv name="MaintainAddressValidationSetup" module="AddressValidation">User can configure Address Validation</loadpriv>
-  <loadpriv name="ViewAddressValidationSetup"     module="AddressValidation">User can view the Address Validation configuration</loadpriv>
+  <loadpriv name="MaintainAddressValidationSetup" module="CRM">User can configure Address Validation</loadpriv>
+  <loadpriv name="ViewAddressValidationSetup"     module="CRM">User can view the Address Validation configuration</loadpriv>
 
+  <createtable   file="foundation-database/xtaddrver/tables/addrchecked.sql"   name="addrchecked" />
+  <createtrigger file="foundation-database/xtaddrver/triggers/addrchecked.sql" name="addrcheckedbeforeupserttrigger" />
+
+  <finalscript file="foundation-database/xtaddrver/indexes/addrchecked.sql" />
+  <finalscript file="foundation-database/xtaddrver/cleanup.sql" />
 </package>
 

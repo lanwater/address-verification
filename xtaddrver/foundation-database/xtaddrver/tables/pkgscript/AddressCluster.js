@@ -1,18 +1,17 @@
 /*
   This file is part of the xtaddrver Package for xTuple ERP,
-  and is Copyright (c) 1999-2018 by OpenMFG LLC, d/b/a xTuple.  It
-  is licensed to you under the xTuple End-User License Agreement ("the
-  CPAL"), the full text of which is available at www.xtuple.com/EULA.
-  While the CPAL gives you access to source code and encourages your
-  involvement in the development process, this Package is not free
-  software.  By using this software, you agree to be bound by the
-  terms of the CPAL.
+  and is Copyright (c) 1999-2018 by OpenMFG LLC, d/b/a xTuple.
+  It is licensed to you under the Common Public Attribution License
+  version 1.0, the full text of which (including xTuple-specific Exhibits)
+  is available at www.xtuple.com/CPAL.  By using this software, you agree
+  to be bound by its terms.
 */
 
 (function () {
   var AddressValidator; // declare first, overwrite by include()
   include("AddressValidator");
 
+  const DEBUG = false;
   var valname = metrics.value("AddressValidatorToUse");
   if (valname.length == 0 || ! valname in AddressValidator)
     return;
@@ -28,25 +27,14 @@
       _country    = mywidget.findChild("_country");
 
   var layout     = widgetGetLayout(_list),
-      validate   = new QPushButton("Validate", mywidget);
+      validate   = new QPushButton(qsTr("Check"), mywidget);
 
   var netmgr     = new QNetworkAccessManager(mywidget);
 
-  if (Array.isArray(AddressValidator[valname].hint))
-    AddressValidator[valname].hint.forEach(function (e) {
-      print(e);
-      var widget;
-      switch (e.key) {
-        case "addr_line1":      widget = _addr1;        break;
-        case "addr_line2":      widget = _addr2;        break;
-        case "addr_line3":      widget = _addr3;        break;
-        case "addr_city":       widget = _city;         break;
-        case "addr_state":      widget = _state;        break;
-        case "addr_postalcode": widget = _postalcode;   break;
-        case "addr_country":    widget = _country;      break;
-      };
-      if (widget && e.value) widget.placeholderText = e.value;
-    });
+  DEBUG && print("about to set placeholders");
+  _addr1.placeholderText = AddressValidator[valname].getHint('line1');
+  _addr2.placeholderText = AddressValidator[valname].getHint('line2');
+  _addr3.placeholderText = AddressValidator[valname].getHint('line3');
 
   // scripted version of toolbox.widgetGetLayout(w)
   function widgetGetLayout(w)
@@ -65,36 +53,44 @@
 
   function sGetResponse(netreply)
   {
+    DEBUG && print('sGetResponse(', netreply, ') entered with', JSON.stringify(netreply));
     try {
       var response = AddressValidator.parseResponse(netreply);
-      response = AddressValidator[valname].extractAddress(response);
+      DEBUG && print("parsed:", JSON.stringify(response));
+      if (response)
+      {
+        response = AddressValidator[valname].extractAddress(response);
+        DEBUG && print("extracted:", JSON.stringify(response));
+      }
 
       if (! response)
+      {
+        DEBUG && print('falsey response');
         markDirty();
+      }
       else if (response.requestStatus === 'error')
       {
         markInvalid();
-        QMessageBox.critical(mywidget, "Address Validation Error",
-                             valname + " reported an error:\n" +
-                             response.lastError.text +
-                             (response.lastError.number
-                                ? " [" + response.lastError.number + "]"
-                                : ""));
+        QMessageBox.critical(mywidget, qsTr("Address Validation Error"),
+                             qsTr("%1 reported an error [%2]:<br/>%3")
+                                 .arg(valname                   || " ")
+                                 .arg(response.lastError.number || "no #")
+                                 .arg(response.lastError.text   || " "));
+
       }
       else if (response.requestStatus === 'warning')
       {
         markDirty();
-        QMessageBox.warning(mywidget, "Address Validation Warning",
-                            valname + " warning:\n" +
-                            response.lastError.text +
-                            (response.lastError.number
-                                ? " [" + response.lastError.number + "]"
-                                : ""));
+        QMessageBox.critical(mywidget, qsTr("Address Validation Warning"),
+                             qsTr("%1 reported a warning [%2]:<br/>%3")
+                                 .arg(valname                   || " ")
+                                 .arg(response.lastError.number || "no #")
+                                 .arg(response.lastError.text   || " "));
         if (response.addr) {
-          mywidget.setLine1(response.addr.addr_line1);
-          mywidget.setLine2(response.addr.addr_line2);
-          if (typeof response.addr.addr_line3 == "string")
-            mywidget.setLine3(response.addr.addr_line3);
+          // these `in` checks allow the validator to skip fields
+          ("addr_line1" in response.addr) && mywidget.setLine1(response.addr.addr_line1);
+          ("addr_line2" in response.addr) && mywidget.setLine2(response.addr.addr_line2);
+          ("addr_line3" in response.addr) && mywidget.setLine3(response.addr.addr_line3);
 
           mywidget.setCity(response.addr.addr_city);
           mywidget.setState(response.addr.addr_state);
@@ -104,38 +100,136 @@
       else if (response.requestStatus === 'good')
       {
         markValid();
-        mywidget.setLine1(response.addr.addr_line1);
-        mywidget.setLine2(response.addr.addr_line2);
-        if (typeof response.addr.addr_line3 == "string")
-          mywidget.setLine3(response.addr.addr_line3);
+        // these `in` checks allow the validator to skip fields
+        ("addr_line1" in response.addr) && mywidget.setLine1(response.addr.addr_line1);
+        ("addr_line2" in response.addr) && mywidget.setLine2(response.addr.addr_line2);
+        ("addr_line3" in response.addr) && mywidget.setLine3(response.addr.addr_line3);
 
         mywidget.setCity(response.addr.addr_city);
         mywidget.setState(response.addr.addr_state);
         mywidget.setPostalCode(response.addr.addr_postalcode);
+
+        var qry = new QSqlQuery();
+        qry.prepare("INSERT INTO addrchecked (addrchecked_addr_id, addrchecked_service,"
+                  + "  addrchecked_hash"
+                  + ") VALUES (:id, :service,"
+                  + "       digest((:line1::TEXT, :line2::TEXT, :line3::TEXT,"
+                  + "               :city::TEXT, :state::TEXT, :postalcode::TEXT,"
+                  + "               :country::TEXT)::TEXT, 'sha512')"
+                  + ")"
+                  + "  ON CONFLICT (addrchecked_addr_id)"
+                  + "  DO UPDATE SET addrchecked_service = :service,"
+                  + "                addrchecked_hash = "
+                  + "                digest((:line1::TEXT, :line2::TEXT, :line3::TEXT,"
+                  + "                        :city::TEXT, :state::TEXT, :postalcode::TEXT,"
+                  + "                        :country::TEXT)::TEXT, 'sha512')"
+                  + "      WHERE EXCLUDED.addrchecked_addr_id = :id"
+                  + " RETURNING *;");
+        qry.bindValue(":id",         mywidget.id());
+        qry.bindValue(":service",    valname);
+        qry.bindValue(":line1",      mywidget.line1());
+        qry.bindValue(":line2",      mywidget.line2());
+        qry.bindValue(":line3",      mywidget.line3());
+        qry.bindValue(":city",       mywidget.city());
+        qry.bindValue(":state",      mywidget.state());
+        qry.bindValue(":postalcode", mywidget.postalCode());
+        qry.bindValue(":country",    mywidget.country());
+        qry.exec();
+        if (qry.first() && DEBUG)
+          print(qry.value("addrchecked_addr_id"), qry.value("addrchecked_hash"));
+        else if (qry.lastError().type() != QSqlError.NoError)
+          // non-fatal
+          print("Could not record that this address passed validation:", qry.lastError().text());
       }
       else
         throw new Error(JSON.stringify(response));
     } catch (e) {
-      QMessageBox.critical(mywidget, "AddressCluster Script Failure",
-                           "AddressCluster.sGetResponse Error @ "
-                           + e.lineNumber + ": " + e.message);
+      markDirty();
+      QMessageBox.critical(mywidget, qsTr("AddressCluster Script Failure"),
+                           qsTr("AddressCluster.sGetResponse Error @ %1: %2")
+                               .arg(e.lineNumber).arg(e.message));
     }
+  }
+
+  function sHandleNewId()
+  {
+    var qry = new QSqlQuery();
+    qry.prepare("SELECT addrchecked_hash = "
+              + "       digest((:line1::TEXT, :line2::TEXT, :line3::TEXT,"
+              + "               :city::TEXT, :state::TEXT, :postalcode::TEXT,"
+              + "               :country::TEXT)::TEXT, 'sha512')"
+              + "       AS matches"
+              + "  FROM addrchecked"
+              + "  WHERE addrchecked_addr_id = :id;");
+    qry.bindValue(":id",         mywidget.id());
+    qry.bindValue(":service",    valname);
+    qry.bindValue(":line1",      mywidget.line1());
+    qry.bindValue(":line2",      mywidget.line2());
+    qry.bindValue(":line3",      mywidget.line3());
+    qry.bindValue(":city",       mywidget.city());
+    qry.bindValue(":state",      mywidget.state());
+    qry.bindValue(":postalcode", mywidget.postalCode());
+    qry.bindValue(":country",    mywidget.country() || metrics.value("DefaultAddressCountry"));
+    if (qry.exec() && qry.first() && qry.value("matches"))
+      markValid();
+    else
+    {
+      markDirty();
+      if (qry.lastError().type() != QSqlError.NoError)
+        // non-fatal
+        print("Could not check whether this address previously passed validation:",
+              qry.lastError().text());
+    }
+  }
+
+  function canValidate()
+  {
+    if (DEBUG)
+      print("canValidate() entered",
+            _country.isValid(), _country.code || '?', _country.text || '?');
+    var qry, result = false;
+    if (AddressValidator[valname].servicecountry.indexOf(_country.code) >= 0)
+      result = true;
+    else if (AddressValidator[valname].servicecountry.indexOf(_country.text) >= 0)
+      result = true;
+    else if (_country.id() == -1 &&
+             AddressValidator[valname].servicecountry.indexOf(metrics.value("DefaultAddressCountry") >= 0))
+      result = true;
+    else
+    {
+      DEBUG && print("querying");
+      qry = QSqlQuery();
+      qry.prepare("SELECT country_abbr, country_name"
+                + "  FROM country"
+                + " WHERE :country::TEXT IN (country_abbr, country_name);");
+      qry.bindValue(':country', _country.text);
+      qry.exec();
+      if (qry.first())
+      {
+        DEBUG && print("qry retrieved", qry.value('country_abbr'), qry.value('country_name'));
+        result = AddressValidator[valname].servicecountry.indexOf(qry.value('country_abbr')) >= 0
+              || AddressValidator[valname].servicecountry.indexOf(qry.value('country_name')) >= 0;
+      }
+    }
+
+    DEBUG && print("canValidate() returning", result);
+    return result;
   }
 
   function markDirty()
   {
-    validate.text    = "Check";
-    validate.enabled = mywidget.enabled;
-    validate.setStyleSheet("color: " + namedColor("warning") + ";");
+    validate.text    = qsTr("Check");
+    validate.enabled = mywidget.enabled && canValidate();
+    validate.setStyleSheet("color: %1;".arg(namedColor("warning")));
   }
 
   function sValidate()
   {
     var url, message, request, params;
 
-    validate.text    = "Wait";
+    validate.text    = qsTr("Wait");
     validate.enabled = false;
-    validate.setStyleSheet("color: " + namedColor("expired") + ";");
+    validate.setStyleSheet("color: %1;".arg(namedColor("expired")));
 
     params = {
       addr_id:         mywidget.id(),
@@ -165,23 +259,23 @@
         netmgr.get(request);
     }
     else
-      QMessageBox.information(mywidget, "Address Validation Error",
-                              "Don't know how to process this: "
-                              + JSON.stringify(message));
+      QMessageBox.information(mywidget, qsTr("Address Validation Error"),
+                              qsTr("Don't know how to process this: %1")
+                                  .arg(JSON.stringify(message)));
   }
-   
+
   function markInvalid()
   {
-    validate.text    = "Invalid";
-    validate.enabled = mywidget.enabled;
-    validate.setStyleSheet("color: " + namedColor("error") + ";");
+    validate.text    = qsTr("Invalid");
+    validate.enabled = mywidget.enabled && canValidate();
+    validate.setStyleSheet("color: %1;".arg(namedColor("error")));
   }
 
   function markValid()
   {
-    validate.text    = "Good";
+    validate.text    = qsTr("Good");
     validate.enabled = false;
-    validate.setStyleSheet("color: " + namedColor("future") + ";");
+    validate.setStyleSheet("color: %1;".arg(namedColor("future")));
   }
 
   validate.objectName = "validate";
@@ -194,9 +288,10 @@
   _state["valid(bool)"].connect(markDirty);
   _postalcode.textEdited.connect(markDirty);
   _country["newID(int)"].connect(markDirty);
+  mywidget["newId(int)"].connect(sHandleNewId);
 
   validate.clicked.connect(sValidate);
   netmgr.finished.connect(sGetResponse);
 
-  markDirty();
+  sHandleNewId();
 })();
