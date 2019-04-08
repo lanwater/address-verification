@@ -72,7 +72,7 @@
       {
         markInvalid();
         QMessageBox.critical(mywidget, qsTr("Address Validation Error"),
-                             qsTr("%1 reported an error [%2]:<br/>%3")
+                             qsTr("%3<br/><br/>%1 error [%2]")
                                  .arg(valname                   || " ")
                                  .arg(response.lastError.number || "no #")
                                  .arg(response.lastError.text   || " "));
@@ -81,8 +81,8 @@
       else if (response.requestStatus === 'warning')
       {
         markDirty();
-        QMessageBox.critical(mywidget, qsTr("Address Validation Warning"),
-                             qsTr("%1 reported a warning [%2]:<br/>%3")
+        QMessageBox.warning(mywidget, qsTr("Address Validation Warning"),
+                             qsTr("%3<br/><br/>%1 warning [%2]")
                                  .arg(valname                   || " ")
                                  .arg(response.lastError.number || "no #")
                                  .arg(response.lastError.text   || " "));
