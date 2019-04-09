@@ -8,9 +8,10 @@
 */
 
 include('AddressValidator');
+var QTableWidget; // declare this because 4.11.x doesn't expose QTableWidget to scripting
 
 (function () {
-  const DEBUG = true;
+  const DEBUG = false;
   var layout, tab, tabname, valname;
   var countriesLit, countries; // temporary variables to hold widgets
   var _setupwindow = mainwindow.findChild("setup"),
@@ -143,7 +144,7 @@ include('AddressValidator');
         else if (e._widget)
           e._widget.enabled = privileges.check("MaintainAddressValidationSetup");
       });
-      if (AddressValidator[valname].servicecountry)
+      if (AddressValidator[valname].servicecountry && QTableWidget)
       {
         countriesLit = new XLabel(mywindow, "_" + valname + "CountriesLit");
         countriesLit.text = qsTr("Supported Countries");
