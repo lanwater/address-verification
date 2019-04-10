@@ -361,8 +361,8 @@ var AddressValidator = {
     var urlsetup;
     var result = metrics.value(metricname).trim();
 
-    if (! result)
-      metricsenc.value(metricname).trim();
+    if (! result && metricsenc)
+      result = metricsenc.value(metricname).trim();
 
     if (! result)
     {
