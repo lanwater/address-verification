@@ -362,7 +362,7 @@ var AddressValidator = {
     var result = metrics.value(metricname).trim();
 
     if (! result && metricsenc)
-      metricsenc.value(metricname).trim();
+      result = metricsenc.value(metricname).trim();
 
     if (! result)
     {
